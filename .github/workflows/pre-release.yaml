@@ -63,7 +63,7 @@ jobs:
             -H "X-GitHub-Api-Version: 2022-11-28" \
             /repos/omilovskiy/auto-versioning/releases/generate-notes \
             -f tag_name='${{ steps.bump_version.outputs.next-version }}' \
-          -f target_commitish='main' \
+          -f target_commitish='dev' \
           -f previous_tag_name='${{ steps.release_tag.outputs.latest_tag }}')
 
           release_notes_body=$(echo "$release_notes" | jq -r '.body')
@@ -83,7 +83,7 @@ jobs:
             -H "X-GitHub-Api-Version: 2022-11-28" \
             /repos/omilovskiy/auto-versioning/releases \
             -f tag_name='${{ steps.bump_version.outputs.next-version }}' \
-          -f target_commitish='main' \
+          -f target_commitish='dev' \
           -f name='${{ steps.bump_version.outputs.next-version }}' \
           -f body="${{ env.RELEASE_NOTES_MULTILINE }}" \
           -F draft=false \
