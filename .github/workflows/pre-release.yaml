@@ -9,6 +9,7 @@ on:
 
 jobs:
   create-pre-release:
+    permissions: write-all
     name: Create Pre Release  
     runs-on: ubuntu-latest
     steps:
