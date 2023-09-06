@@ -18,7 +18,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          latest_tag_json=$(gh api -H "Accept: application/vnd.github+json" -H "X-GitHub-Api-Version: 2022-11-28" /repos/omilovskyi/auto-versioning/tags)
+          latest_tag_json=$(gh api -H "Accept: application/vnd.github+json" -H "X-GitHub-Api-Version: 2022-11-28" /repos/omilovskiy/auto-versioning/tags)
           latest_tag=$(echo "$latest_tag_json" | jq -r '.[0].name')
           echo "latest_tag: Latest Tag is : $latest_tag"
           echo "latest_tag=$latest_tag" >> $GITHUB_OUTPUT
@@ -34,7 +34,7 @@ jobs:
           latest_release=$(gh api \
             -H "Accept: application/vnd.github+json" \
             -H "X-GitHub-Api-Version: 2022-11-28" \
-            /repos/omilovskyi/auto-versioning/releases/tags/${{ steps.release_tag.outputs.latest_tag }})
+            /repos/omilovskiy/auto-versioning/releases/tags/${{ steps.release_tag.outputs.latest_tag }})
           
           release_id=$(echo "$latest_release" | jq -r '.id')
           
@@ -48,5 +48,5 @@ jobs:
             --method PATCH \
             -H "Accept: application/vnd.github+json" \
             -H "X-GitHub-Api-Version: 2022-11-28" \
-            /repos/omilovskyi/auto-versioning/releases/${{ steps.latest_release.outputs.release_id }} \
+            /repos/omilovskiy/auto-versioning/releases/${{ steps.latest_release.outputs.release_id }} \
           -F prerelease=false 
