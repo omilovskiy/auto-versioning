@@ -52,4 +52,4 @@ jobs:
             /repos/omilovskiy/auto-versioning/releases/${{ steps.latest_release.outputs.release_id }} \
           -F draft=false \
           -F prerelease=false \
-          -f make_latest='true'
+          -F make_latest=true
