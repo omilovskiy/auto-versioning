@@ -1,11 +1,16 @@
 name: Create Release
 
+# on:
+#   pull_request:
+#     branches:
+#       - 'main'
+#     types:
+#       - closed
+
 on:
-  pull_request:
+  push:
     branches:
       - 'main'
-    types:
-      - closed
 
 jobs:
   create-release:
