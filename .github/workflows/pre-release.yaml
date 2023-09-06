@@ -1,0 +1,85 @@
+name: Create Pre Release
+
+on:
+  pull_request:
+    branches:
+      - 'main'
+    types:
+      - opened
+
+jobs:
+  create-pre-release:
+    name: Create Pre Release  
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get latest tag
+        id: release_tag
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          latest_release_json=$(gh api -H "Accept: application/vnd.github+json" -H "X-GitHub-Api-Version: 2022-11-28" /repos/cleanio/adqp-engine/releases/latest)
+          latest_tag=$(echo "$latest_release_json" | jq -r '.tag_name')
+          echo "latest_tag: Latest Tag is : $latest_tag"
+          echo "latest_tag=$latest_tag" >> $GITHUB_OUTPUT
+      
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Select version fragment
+        id: version_frag
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [[ "${{ github.event.pull_request.title }}" =~ "major" ]]; then
+            version_fragment="major"
+          elif [[ "${{ github.event.pull_request.title }}" =~ "minor" ]]; then
+            version_fragment="feature"
+          else
+            version_fragment="bug"
+          fi
+          echo "version_fragment=$version_fragment" >> $GITHUB_OUTPUT
+
+      - name: Bump version
+        id: bump_version
+        uses: christian-draeger/increment-semantic-version@1.0.3
+        with:
+          current-version: ${{ steps.release_tag.outputs.latest_tag }}
+          version-fragment: ${{ steps.version_frag.outputs.version_fragment }}
+
+      - name: Create release notes
+        id: release_notes
+        env: 
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          release_notes=$(gh api \
+            --method POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            /repos/cleanio/adqp-engine/releases/generate-notes \
+            -f tag_name='${{ steps.bump_version.outputs.next-version }}' \
+          -f target_commitish='development' \
+          -f previous_tag_name='${{ steps.release_tag.outputs.latest_tag }}')
+
+          release_notes_body=$(echo "$release_notes" | jq -r '.body')
+          echo "$release_notes_body"
+
+          echo 'RELEASE_NOTES_MULTILINE<<EOF' >> $GITHUB_ENV
+          echo "$release_notes_body" >> $GITHUB_ENV
+          echo 'EOF' >> $GITHUB_ENV
+                
+      - name: Create Pre Release
+        env: 
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh api \
+            --method POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            /repos/cleanio/adqp-engine/releases \
+            -f tag_name='${{ steps.bump_version.outputs.next-version }}' \
+          -f target_commitish='development' \
+          -f name='${{ steps.bump_version.outputs.next-version }}' \
+          -f body="${{ env.RELEASE_NOTES_MULTILINE }}" \
+          -F draft=false \
+          -F prerelease=true \
+          -F generate_release_notes=false
