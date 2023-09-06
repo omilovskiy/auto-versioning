@@ -9,6 +9,7 @@ on:
 
 jobs:
   create-release:
+    permissions: write-all
     name: Create Release
     if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
